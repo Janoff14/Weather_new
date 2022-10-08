@@ -7,7 +7,8 @@
     app:cardElevation="6dp"
     app:cardCornerRadius="10dp"
     android:background="@android:color/transparent"
-    android:layout_margin="10dp">
+    android:layout_margin="10dp"
+    android:padding="5dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -15,29 +16,32 @@
         android:background="@drawable/card_back">
 
         <TextView
+            android:id="@+id/idTxtTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/idTxtTime"
             android:gravity="center"
-            android:padding="4dp"
+            android:padding="5dp"
+            android:textSize="12sp"
             android:text="Time"
+            android:textAlignment="center"
             android:textColor="@color/white"
-            android:textAlignment="center"/>
+            android:layout_marginHorizontal="2dp"
+            />
 
         <TextView
+            android:id="@+id/idTxtTemperature"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/idTxtTemperature"
+            android:layout_below="@id/idTxtTime"
             android:gravity="center"
             android:text="20"
             android:textAlignment="center"
-            android:textSize="20sp"
-            android:layout_below="@id/idTxtTime"
-            android:textColor="@color/white"/>
+            android:textColor="@color/white"
+            android:textSize="20sp" />
 
         <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_below="@id/idTxtTemperature"
             android:id="@+id/idImgCondition"
             android:layout_centerHorizontal="true"
@@ -47,17 +51,20 @@
             />
 
         <TextView
+            android:id="@+id/idTxtWindSpeed"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/idImgCondition"
-            android:id="@+id/idTxtWindSpeed"
             android:layout_centerHorizontal="true"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginBottom="4dp"
             android:gravity="center"
-            android:textAlignment="center"
-            android:textColor="@color/white"
-            android:text="13"
             android:padding="3dp"
-            android:layout_margin="4dp"/>
+            android:text="13"
+            android:textAlignment="center"
+            android:textColor="@color/white" />
 
     </RelativeLayout>
 </androidx.cardview.widget.CardView>

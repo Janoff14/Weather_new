@@ -1,19 +1,20 @@
 package com.example.sanjarbey
 
-class WeatherModel {
+class WeatherModel(
+    private var time: String,
+    private var temperature: String,
+    private var icon: String,
+    private var windSpeed: String,
+    private var timeZone: String
+) {
 
-    private lateinit var time: String
-    private lateinit var temperature: String
-    private lateinit var icon: String
-    private lateinit var windSpeed: String
-
-    constructor(time: String, temperature: String, icon: String, windSpeed: String) {
-        this.time = time
-        this.temperature = temperature
-        this.icon = icon
-        this.windSpeed = windSpeed
+    fun getTimeZone(): String{
+        return timeZone
     }
 
+    fun setTimeZone(timeZone: String){
+        this.timeZone = timeZone
+    }
     fun getTime(): String {
         return time
     }

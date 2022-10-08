@@ -9,7 +9,6 @@ import android.location.Address
 import android.location.Geocoder
 import android.location.LocationManager
 import android.os.Bundle
-import android.text.format.DateUtils
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -21,12 +20,16 @@ import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.example.sanjarbey.databinding.ActivityMainBinding
 import com.google.android.material.textfield.TextInputEditText
-import com.squareup.picasso.Picasso
+import jp.wasabeef.glide.transformations.BlurTransformation
 import org.json.JSONException
 import java.io.IOException
-import java.text.SimpleDateFormat
+import java.time.Instant.ofEpochSecond
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 
@@ -81,16 +84,18 @@ class MainActivity : AppCompatActivity() {
         if (location != null) {
             Log.d("tt", "onCreate: o")
             getWeatherInfo("", location.latitude, location.longitude)
-            Toast.makeText(this, "${location.latitude} ${location.longitude}", Toast.LENGTH_SHORT)
+            Toast.makeText(this, "${location.latitude} ${location.longitude}", Toast.LENGTH_SHORT).show()
 
         } else {
             Log.d("tt", "onCreate: 2")
         }
 
         searchImgv.setOnClickListener {
-            val cityName = cityedt.text.toString()
+            var cityName = cityedt.text.toString()
+            cityName = cityName.replace("\\s".toRegex(), "")
+
             if (cityName.isEmpty()){
-                Toast.makeText(this, "Please enter city name", Toast.LENGTH_SHORT)
+                Toast.makeText(this, "Please enter city name", Toast.LENGTH_SHORT).show()
             } else{
                 cityNameTxtV.text = cityName
                 getWeatherInfo(cityName)
@@ -106,9 +111,9 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_CODE){
             if (grantResults.size>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(this, "Permission granted...", Toast.LENGTH_SHORT)
+                Toast.makeText(this, "Permission granted...", Toast.LENGTH_SHORT).show()
             } else{
-                Toast.makeText(this, "Please provide the permissions...", Toast.LENGTH_SHORT)
+                Toast.makeText(this, "Please provide the permissions...", Toast.LENGTH_SHORT).show()
                 finish()
             }
         }
@@ -118,46 +123,95 @@ class MainActivity : AppCompatActivity() {
         var url = ""
         Log.d("TAG", "getWeatherInfo: $latitude $longitude")
         if (!cityName.isEmpty()){
+
             adress_arr = getAdressfromLocation(cityName, this)
-            url = "https://api.openweathermap.org/data/3.0/onecall?lat=" + adress_arr[1] + "&lon=" + adress_arr[0] +"&exclude=hourly,daily&units=metric&appid=bc5aa90e2855d62a4699c4ab8cc764eb"
+            Log.d("adress", "getWeatherInfo: $adress_arr")
+            url = "https://api.openweathermap.org/data/3.0/onecall?lat=" + adress_arr[0] + "&lon=" + adress_arr[1] +"&exclude=daily,minutely,alerts&units=metric&appid=bc5aa90e2855d62a4699c4ab8cc764eb"
         } else {
+            val geocoder = Geocoder(this, Locale.getDefault())
+            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+            val name = addresses[0].getAddressLine(0)
+            Log.d("city", "getWeatherInfo: $name")
+            cityNameTxtV.text = name
             url =
-                "https://api.openweathermap.org/data/3.0/onecall?lat=" + latitude + "&lon=" + longitude + "&exclude=hourly&units=metric&appid=bc5aa90e2855d62a4699c4ab8cc764eb"
+                "https://api.openweathermap.org/data/3.0/onecall?lat=$latitude&lon=$longitude&exclude=daily,minutely,alerts&units=metric&appid=bc5aa90e2855d62a4699c4ab8cc764eb"
         }
 
-        var requestQueue: RequestQueue = Volley.newRequestQueue(this)
+        val requestQueue: RequestQueue = Volley.newRequestQueue(this)
 
-        var jsonObjectRequest: JsonObjectRequest = JsonObjectRequest(Request.Method.GET, url, null,
+        val jsonObjectRequest: JsonObjectRequest = JsonObjectRequest(Request.Method.GET, url, null,
             { response ->
+
                 Log.d("TAG", "getWeatherInfo: ee")
-                Toast.makeText(this, "ss", Toast.LENGTH_SHORT)
+                Toast.makeText(this, "ss", Toast.LENGTH_SHORT).show()
                 loadingPB.visibility = View.GONE
                 homeRvl.visibility = View.VISIBLE
-                weatherModelArrayList.clear()
+                if (weatherModelArrayList.size != 0){
+                    runOnUiThread {
+                        weatherAdapter.notifyItemRangeRemoved(0, weatherModelArrayList.size)
+                    }
+                    weatherModelArrayList.clear()
+
+                }
 
                 try {
-                    val temperatue = response.getJSONObject("current").getString("temp")
+                    var temperatue = response.getJSONObject("current").getString("temp")
+                    temperatue = "$temperatue°c"
                     temperaturTxtV.text = temperatue
+                    conditionTxtV.text = response.getJSONObject("current").getJSONArray("weather").getJSONObject(0).getString("main")
                     val time_unix = response.getJSONObject("current").getString("dt")
-                    val time = getDateTime(time_unix)
-                    Log.d("time", "getWeatherInfo: $time")
+                    val timezone = response.getString("timezone")
+                    val time = getDateTime(time_unix, timezone)
+                    Log.d("timenow", "getWeatherInfo: $time")
                     val condition = response.getJSONObject("current").getJSONArray("weather").getJSONObject(0)
                         .getString("icon")
-                    Picasso.get().load("http://openweathermap.org/img/wn/" + condition + "@2x.png").into(iconImgV)
+                    val icon_url = "https://openweathermap.org/img/wn/$condition@2x.png"
 
-                    if (condition[2].equals('d')){
-                        Log.d("day", "getWeatherInfo: day")
-                        Picasso.get().load("https://unsplash.com/photos/28ZbKOWiZfs").into(backImgV)
+                    Glide.with(this)
+                        .load(icon_url)
+                        .override(300, 200)
+                        .into(iconImgV)
+
+
+                    if (condition[2] == 'd'){
+                        Glide.with(this)
+                            .load(R.drawable.day)
+                            .apply(RequestOptions.bitmapTransform(BlurTransformation(25,3)))
+                            .into(backImgV)
                     } else{
-                        Picasso.get().load("https://steprimo.com/android/us/app/com.Sky_HD.Wallpaper.wallpapersapp/Sky-Wallpaper/#iPhone-img-6").into(backImgV)
+                        Glide.with(this)
+                            .load(R.drawable.night)
+                            .apply(RequestOptions.bitmapTransform(BlurTransformation(25,3)))
+                            .into(backImgV)
+
+                    }
+
+
+                    //daily recycler view
+
+                    val dailyArray = response.getJSONArray("hourly")
+                    for (i in 0 until dailyArray.length()){
+                        Log.d("TAG", "getWeatherInfo: $cityName")
+
+                        val hour = dailyArray.getJSONObject(i)
+                        val time1 = hour.getString("dt")
+                        val temperature = hour.getString("temp")
+                        val icon = hour.getJSONArray("weather").getJSONObject(0).getString("icon")
+                        val windspeed = hour.getString("wind_speed")
+
+                        val weatherModel = WeatherModel(time1, temperature, icon, windspeed, timezone)
+                        weatherModelArrayList.add(weatherModel)
+                        runOnUiThread {
+                            weatherAdapter.notifyItemInserted(weatherModelArrayList.size-1)
+                        }
                     }
 
                 } catch (e: JSONException){
-
+                    Log.d("check", "getWeatherInfo: $e")
                 }
             },
             {
-                Toast.makeText(this, "22", Toast.LENGTH_SHORT)
+                Toast.makeText(this, it.toString(), Toast.LENGTH_SHORT).show()
 
             })
 
@@ -169,7 +223,7 @@ class MainActivity : AppCompatActivity() {
 
             var longitude = ""
             var latitude = ""
-            var res = arrayListOf<String>()
+            val res = arrayListOf<String>()
             val geoCoder = Geocoder(
                 context,
                 Locale.getDefault()
@@ -191,16 +245,16 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun getDateTime(s: String): String? {
+    private fun getDateTime(s: String = "1665237046", timezone: String, format: String = "EEE, LLL d hh:mm a"): String {
         try {
-            val sdf = SimpleDateFormat("HH:MM MM/dd/yyyy")
-            val time = DateUtils.formatDateTime(this, (s.toLong()-18000)*1000, DateUtils.FORMAT_SHOW_TIME)
-            Log.d("time", "getDateTime: $time")
-            sdf.timeZone = TimeZone.getTimeZone("UTC")
-            val netDate = Date(s.toLong()*1000)
-            return sdf.format(netDate)
+            val timestamp = s.toInt()
+            val zoneId = ZoneId.of(timezone)
+            val instant = ofEpochSecond(timestamp.toLong())
+            val formatter = DateTimeFormatter.ofPattern(format, Locale.ENGLISH)
+            return instant.atZone(zoneId).format(formatter)
         } catch (e: Exception) {
             return e.toString()
         }
     }
+
 }
