@@ -24,5 +24,6 @@ The following **additional** features are in progress:
 
 ## Video Walkthrough
 
+https://www.canva.com/design/DAFO203Wzbg/jVwcyZjt1sReJky9JcOc7A/edit
 Here's a walkthrough of implemented user stories:
 
