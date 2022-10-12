@@ -24,6 +24,6 @@ The following **additional** features are in progress:
 
 ## Video Walkthrough
 
- ![gif maker](https://user-images.githubusercontent.com/73020531/195434194-66312be2-69e4-45a3-9038-848100eb09f6.gif)
+![ezgif-3-81c73c1be3](https://user-images.githubusercontent.com/73020531/195437247-ee7ff333-636e-4ee6-bdba-59b47d0f7166.gif)
 
 
