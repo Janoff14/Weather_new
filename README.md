@@ -6,8 +6,8 @@
 
 The following functionality is completed:
 
-- **Shows current weather information of the current location as a default**
-- **On thee bottom part, it shows an hourly forecast data in Cardviews managed by a Recyclerview**
+- Shows current weather information of the current location as a default
+- On thee bottom part, it shows an hourly forecast data in Cardviews managed by a Recyclerview
 - **According to the time of the day (day or night), the application changes its background image to reflect it**
 - **Finds same data for any other inputted by the user city**
  
